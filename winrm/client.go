@@ -2,17 +2,20 @@ package winrm
 
 import (
 	"bytes"
-	"crypto/tls"
+	//"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"io"
-	"net/http"
+	"launchpad.net/gwacl/fork/http"
+	"launchpad.net/gwacl/fork/tls"
+	//"net/http"
 
 	"github.com/masterzen/winrm/soap"
 )
 
 type Client struct {
 	Parameters
+	Auth      Auth
 	username  string
 	password  string
 	useHTTPS  bool
@@ -23,19 +26,20 @@ type Client struct {
 
 // NewClient will create a new remote client on url, connecting with user and password
 // This function doesn't connect (connection happens only when CreateShell is called)
-func NewClient(endpoint *Endpoint, user, password string) (client *Client, err error) {
+func NewClient(endpoint *Endpoint, user, password string, auth Auth) (client *Client, err error) {
 	params := DefaultParameters()
-	client, err = NewClientWithParameters(endpoint, user, password, params)
+	client, err = NewClientWithParameters(endpoint, user, password, auth, params)
 	return
 }
 
 // NewClient will create a new remote client on url, connecting with user and password
 // This function doesn't connect (connection happens only when CreateShell is called)
-func NewClientWithParameters(endpoint *Endpoint, user, password string, params *Parameters) (client *Client, err error) {
+func NewClientWithParameters(endpoint *Endpoint, user, password string, auth Auth, params *Parameters) (client *Client, err error) {
 	transport, err := newTransport(endpoint)
 
 	client = &Client{
 		Parameters: *params,
+		Auth:       auth,
 		username:   user,
 		password:   password,
 		url:        endpoint.url(),
@@ -48,9 +52,20 @@ func NewClientWithParameters(endpoint *Endpoint, user, password string, params *
 
 // newTransport will create a new HTTP Transport, with options specified within the endpoint configuration
 func newTransport(endpoint *Endpoint) (*http.Transport, error) {
+	var cert tls.Certificate
+	var err error
+	if endpoint.Key != nil && endpoint.Cert != nil {
+		cert, err = tls.X509KeyPair(endpoint.Cert, endpoint.Key)
+		if err != nil {
+			return nil, err
+		}
+	}
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: endpoint.Insecure,
+			Certificates: []tls.Certificate{
+				cert,
+			},
 		},
 	}
 

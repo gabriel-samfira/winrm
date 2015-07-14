@@ -3,10 +3,11 @@ package winrm
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
+	//"net/http"
 	"strings"
 
 	"github.com/masterzen/winrm/soap"
+	"launchpad.net/gwacl/fork/http"
 )
 
 var soapXML string = "application/soap+xml"
@@ -42,7 +43,12 @@ func Http_post(client *Client, request *soap.SoapMessage) (response string, err 
 		return
 	}
 	req.Header.Set("Content-Type", soapXML+";charset=UTF-8")
-	req.SetBasicAuth(client.username, client.password)
+	switch client.Auth {
+	case Basic:
+		req.SetBasicAuth(client.username, client.password)
+	case Cert:
+		req.Header.Set("Authorization", "http://schemas.dmtf.org/wbem/wsman/1/wsman/secprofile/https/mutual")
+	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		err = fmt.Errorf("unknown error %s", err)

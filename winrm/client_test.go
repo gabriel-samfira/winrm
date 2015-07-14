@@ -6,7 +6,7 @@ import (
 )
 
 func (s *WinRMSuite) TestNewClient(c *C) {
-	client, err := NewClient(&Endpoint{Host: "localhost", Port: 5985}, "Administrator", "v3r1S3cre7")
+	client, err := NewClient(&Endpoint{Host: "localhost", Port: 5985}, "Administrator", "v3r1S3cre7", Basic)
 
 	c.Assert(err, IsNil)
 	c.Assert(client.url, Equals, "http://localhost:5985/wsman")
@@ -15,7 +15,7 @@ func (s *WinRMSuite) TestNewClient(c *C) {
 }
 
 func (s *WinRMSuite) TestClientCreateShell(c *C) {
-	client, err := NewClient(&Endpoint{Host: "localhost", Port: 5985}, "Administrator", "v3r1S3cre7")
+	client, err := NewClient(&Endpoint{Host: "localhost", Port: 5985}, "Administrator", "v3r1S3cre7", Basic)
 	c.Assert(err, IsNil)
 	client.http = func(client *Client, message *soap.SoapMessage) (string, error) {
 		c.Assert(message.String(), Contains, "http://schemas.xmlsoap.org/ws/2004/09/transfer/Create")

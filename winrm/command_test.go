@@ -10,7 +10,7 @@ import (
 )
 
 func (s *WinRMSuite) TestExecuteCommand(c *C) {
-	client, err := NewClient(&Endpoint{Host: "localhost", Port: 5985}, "Administrator", "v3r1S3cre7")
+	client, err := NewClient(&Endpoint{Host: "localhost", Port: 5985}, "Administrator", "v3r1S3cre7", Basic)
 	c.Assert(err, IsNil)
 
 	shell := &Shell{client: client, ShellId: "67A74734-DD32-4F10-89DE-49A060483810"}
@@ -46,7 +46,7 @@ func (s *WinRMSuite) TestExecuteCommand(c *C) {
 }
 
 func (s *WinRMSuite) TestStdinCommand(c *C) {
-	client, err := NewClient(&Endpoint{Host: "localhost", Port: 5985}, "Administrator", "v3r1S3cre7")
+	client, err := NewClient(&Endpoint{Host: "localhost", Port: 5985}, "Administrator", "v3r1S3cre7", Basic)
 	c.Assert(err, IsNil)
 
 	shell := &Shell{client: client, ShellId: "67A74734-DD32-4F10-89DE-49A060483810"}

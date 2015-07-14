@@ -53,7 +53,7 @@ func (s *WinRMSuite) TestHttpRequest(c *C) {
 	ts.Start()
 	defer ts.Close()
 
-	client, err := NewClient(&Endpoint{Host: "localhost", Port: 5985}, "test", "test")
+	client, err := NewClient(&Endpoint{Host: "localhost", Port: 5985}, "test", "test", Basic)
 	c.Assert(err, IsNil)
 	shell, err := client.CreateShell()
 	if err != nil {

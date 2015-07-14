@@ -35,6 +35,9 @@ func main() {
 		https    bool
 		insecure bool
 		cacert   string
+		cert     string
+		key      string
+		auth     string
 	)
 
 	flag.StringVar(&hostname, "hostname", "localhost", "winrm host")
@@ -44,10 +47,17 @@ func main() {
 	flag.BoolVar(&https, "https", false, "use https")
 	flag.BoolVar(&insecure, "insecure", false, "skip SSL validation")
 	flag.StringVar(&cacert, "cacert", "", "CA certificate to use")
+	flag.StringVar(&cert, "cert", "", "X509 certificate to use")
+	flag.StringVar(&key, "key", "", "X509 key to use")
+	flag.StringVar(&auth, "auth", "basic", "Authentication method to use: cert/basic")
 	flag.Parse()
 
 	var certBytes []byte
 	var err error
+	var client *winrm.Client
+	var certBody []byte
+	var keyBody []byte
+	authentication := winrm.Auth(auth)
 	if cacert != "" {
 		certBytes, err = ioutil.ReadFile(cacert)
 		if err != nil {
@@ -59,7 +69,23 @@ func main() {
 	}
 
 	cmd = flag.Arg(0)
-	client, err := winrm.NewClient(&winrm.Endpoint{Host: hostname, Port: port, HTTPS: https, Insecure: insecure, CACert: &certBytes}, user, pass)
+	if winrm.Auth(auth) == winrm.Cert {
+		if cert == "" || key == "" {
+			fmt.Println("Auth cert requires -cert and -key")
+			os.Exit(1)
+		}
+		certBody, err = ioutil.ReadFile(cert)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		keyBody, err = ioutil.ReadFile(key)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+	client, err = winrm.NewClient(&winrm.Endpoint{Host: hostname, Port: port, HTTPS: https, Insecure: insecure, Cert: certBody, Key: keyBody, CACert: &certBytes}, user, pass, authentication)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
